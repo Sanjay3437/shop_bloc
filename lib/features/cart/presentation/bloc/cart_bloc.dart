@@ -10,6 +10,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
   CartBloc() : super(const CartState()) {
     on<CartItemAdded>(_onItemAdded);
     on<CartItemRemoved>(_onItemRemoved);
+    on<CartCleared>(_onCleared);
   }
 
   void _onItemAdded(CartItemAdded event, Emitter<CartState> emit) {
@@ -32,5 +33,9 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     if (items.length == state.items.length) return; // nothing to remove
 
     emit(CartState(items: items, message: 'Removed from cart'));
+  }
+
+  void _onCleared(CartCleared event, Emitter<CartState> emit) {
+    emit(const CartState());
   }
 }

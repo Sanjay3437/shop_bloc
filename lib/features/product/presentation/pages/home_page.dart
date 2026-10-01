@@ -4,6 +4,7 @@ import '../bloc/product_bloc.dart';
 import 'package:shop_bloc/features/cart/presentation/widgets/cart_badge_button.dart';
 import '../widgets/product_card.dart';
 import 'product_detail_page.dart';
+import 'package:shop_bloc/features/auth/presentation/bloc/auth_bloc.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -13,7 +14,15 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Products'),
-        actions: const [CartBadgeButton()],
+        actions: [
+          const CartBadgeButton(),
+          IconButton(
+            tooltip: 'Logout',
+            icon: const Icon(Icons.logout),
+            onPressed: () =>
+                context.read<AuthBloc>().add(const AuthLogoutRequested()),
+          ),
+        ],
       ),
       body: BlocBuilder<ProductBloc, ProductState>(
         builder: (context, state) {
