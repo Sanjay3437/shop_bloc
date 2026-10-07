@@ -1,13 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../bloc/product_bloc.dart';
-import 'package:shop_bloc/features/cart/presentation/widgets/cart_badge_button.dart';
 import '../widgets/product_card.dart';
 import 'product_detail_page.dart';
+
+import 'package:shop_bloc/features/cart/presentation/widgets/cart_badge_button.dart';
 import 'package:shop_bloc/features/auth/presentation/bloc/auth_bloc.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+
+  final ScrollController _scrollController = ScrollController();
+
+
+  final List<String> categories = const [
+    'All',
+    'beauty',
+    'fragrances',
+    'furniture',
+    'groceries',
+    'laptops',
+    'mens-shirts',
+    'mens-shoes',
+    'mens-watches',
+    'mobile-accessories',
+    'motorcycle',
+    'skin-care',
+    'smartphones',
+    'sports-accessories',
+    'sunglasses',
+    'tablets',
+    'tops',
+    'vehicle',
+    'womens-bags',
+    'womens-dresses',
+    'womens-jewellery',
+    'womens-shoes',
+    'womens-watches',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+
+    _scrollController.addListener(_onScroll);
+  }
+
+
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+
+    final position = _scrollController.position;
+
+    // Load next page when close to bottom
+    if (position.pixels >= position.maxScrollExtent - 300) {
+      context.read<ProductBloc>().add(const ProductsNextPage());
+    }
+  }
+
+
+
+  void _selectCategory(String category) {
+    context.read<ProductBloc>().add(
+      ProductsFetched(category: category == 'All' ? null : category),
+    );
+  }
+
+
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+
+    super.dispose();
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -16,59 +96,148 @@ class HomePage extends StatelessWidget {
         title: const Text('Products'),
         actions: [
           const CartBadgeButton(),
+
           IconButton(
             tooltip: 'Logout',
             icon: const Icon(Icons.logout),
-            onPressed: () =>
-                context.read<AuthBloc>().add(const AuthLogoutRequested()),
+            onPressed: () {
+              context.read<AuthBloc>().add(const AuthLogoutRequested());
+            },
           ),
         ],
       ),
+
       body: BlocBuilder<ProductBloc, ProductState>(
         builder: (context, state) {
-          return switch (state) {
-            ProductInitial() || ProductLoading() =>
-            const Center(child: CircularProgressIndicator()),
-            ProductError(:final message) => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(message),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () => context
-                        .read<ProductBloc>()
-                        .add(const ProductsFetched()),
-                    child: const Text('Retry'),
+          // Selected category
+          String? selectedCategory;
+
+          if (state is ProductLoaded) {
+            selectedCategory = state.selectedCategory;
+          }
+
+          return Column(
+            children: [
+
+
+              SizedBox(
+                height: 58,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
                   ),
-                ],
+                  itemCount: categories.length,
+                  itemBuilder: (context, index) {
+                    final category = categories[index];
+
+                    final bool isSelected = category == 'All'
+                        ? selectedCategory == null
+                        : selectedCategory == category;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(
+                          category == 'All' ? 'All' : _formatCategory(category),
+                        ),
+                        selected: isSelected,
+                        onSelected: (_) {
+                          _selectCategory(category);
+                        },
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            ProductLoaded(:final products) => GridView.builder(
-              padding: const EdgeInsets.all(12),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.7,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              itemCount: products.length,
-              itemBuilder: (_, i) {
-                final product = products[i];
-                return ProductCard(
-                  product: product,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ProductDetailPage(product: product),
+
+
+              Expanded(
+                child: switch (state) {
+
+
+                  ProductInitial() || ProductLoading() => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+
+
+                  ProductError(:final message) => Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(message, textAlign: TextAlign.center),
+
+                        const SizedBox(height: 12),
+
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<ProductBloc>().add(
+                              ProductsFetched(category: selectedCategory),
+                            );
+                          },
+                          child: const Text('Retry'),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              },
-            ),
-          };
+
+
+                  ProductLoaded(:final products, :final isLoadingMore) =>
+                    GridView.builder(
+                      controller: _scrollController,
+
+                      padding: const EdgeInsets.all(12),
+
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.7,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                          ),
+
+                      itemCount: products.length + (isLoadingMore ? 1 : 0),
+
+                      itemBuilder: (context, index) {
+                        // Bottom loading indicator
+                        if (index == products.length) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        final product = products[index];
+
+                        return ProductCard(
+                          product: product,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    ProductDetailPage(product: product),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                },
+              ),
+            ],
+          );
         },
       ),
     );
+  }
+
+
+
+  String _formatCategory(String category) {
+    return category
+        .split('-')
+        .map((word) => word[0].toUpperCase() + word.substring(1))
+        .join(' ');
   }
 }

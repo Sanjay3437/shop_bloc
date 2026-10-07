@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:shop_bloc/core/exceptions/app_exceptions.dart';
 import 'package:shop_bloc/core/exceptions/failures.dart';
+
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/product_repository.dart';
 import '../datasource/product_remote_data_source.dart';
@@ -11,9 +12,18 @@ class ProductRepositoryImpl implements ProductRepository {
   const ProductRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<Either<Failure, List<Product>>> getProducts() async {
+  Future<Either<Failure, List<Product>>> getProducts({
+    required int page,
+    required int limit,
+    String? category,
+  }) async {
     try {
-      final products = await remoteDataSource.getProducts();
+      final products = await remoteDataSource.getProducts(
+        page: page,
+        limit: limit,
+        category: category,
+      );
+
       return Right(products);
     } on NetworkException catch (e) {
       return Left(NetworkFailure(e.message));

@@ -36,7 +36,7 @@ Future<void> initDependencies() async {
 
   // Data
   sl.registerLazySingleton<ProductRemoteDataSource>(
-        () => ProductRemoteDataSourceImpl(sl()),
+        () => ProductRemoteDataSourceImpl(),
   );
   sl.registerLazySingleton<ProductRepository>(
         () => ProductRepositoryImpl(sl()),
