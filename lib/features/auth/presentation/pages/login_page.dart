@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shop_bloc/core/utils/validators.dart';
+import '../../../../core/constants/routes.dart';
 import '../bloc/auth_bloc.dart';
 import '../widgets/auth_text_field.dart';
-import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -120,12 +121,7 @@ class _LoginPageState extends State<LoginPage> {
                             TextButton(
                               onPressed: state.isSubmitting
                                   ? null
-                                  : () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const SignupPage(),
-                                ),
-                              ),
+                                  : () => context.push(AppRoutes.signup),
                               child: const Text(
                                 "Don't have an account? Sign up",
                               ),

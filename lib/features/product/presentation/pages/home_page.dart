@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/routes.dart';
 import '../bloc/product_bloc.dart';
 import '../widgets/product_card.dart';
-import 'product_detail_page.dart';
 
 import 'package:shop_bloc/features/cart/presentation/widgets/cart_badge_button.dart';
 import 'package:shop_bloc/features/auth/presentation/bloc/auth_bloc.dart';
@@ -212,13 +213,7 @@ class _HomePageState extends State<HomePage> {
                         return ProductCard(
                           product: product,
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    ProductDetailPage(product: product),
-                              ),
-                            );
+                            context.push(AppRoutes.productDetail, extra: product);
                           },
                         );
                       },

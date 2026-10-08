@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:shop_bloc/features/cart/presentation/bloc/cart_bloc.dart';
 
+import '../../../../core/constants/routes.dart';
 import '../../domain/entities/product.dart';
 
 class ProductDetailPage extends StatelessWidget {
@@ -149,11 +151,9 @@ class ProductDetailPage extends StatelessWidget {
                 Expanded(
                   child: FilledButton.icon(
                     onPressed: () {
-                      // First add product to cart
                       context.read<CartBloc>().add(CartItemAdded(product));
 
-                      // Then go to cart
-                      Navigator.pushNamed(context, '/cart');
+                      context.push(AppRoutes.cart);
                     },
 
                     icon: const Icon(Icons.shopping_bag),

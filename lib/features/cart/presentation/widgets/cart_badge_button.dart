@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/routes.dart';
 import '../../../cart/presentation/bloc/cart_bloc.dart';
-import '../../../cart/presentation/pages/cart_page.dart';
 import '../bloc/cart_bloc.dart';
 import '../pages/cart_page.dart';
 
@@ -14,10 +15,7 @@ class CartBadgeButton extends StatelessWidget {
       buildWhen: (previous, current) => previous.itemCount != current.itemCount,
       builder: (context, state) {
         return IconButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const CartPage()),
-          ),
+          onPressed: () => context.push(AppRoutes.cart),
           icon: Badge(
             isLabelVisible: state.itemCount > 0,
             label: Text('${state.itemCount}'),

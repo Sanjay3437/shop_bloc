@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shop_bloc/core/utils/validators.dart';
+import '../../../../core/constants/routes.dart';
 import '../bloc/auth_bloc.dart';
 import '../widgets/auth_text_field.dart';
 
@@ -48,9 +50,8 @@ class _SignupPageState extends State<SignupPage> {
               previous.errorMessage != current.errorMessage),
       listener: (context, state) {
         if (state.status == AuthStatus.authenticated) {
-          // Signed up and logged in: drop back to the root, where the
-          // route guard now shows the app.
-          Navigator.of(context).popUntil((route) => route.isFirst);
+
+          context.go(AppRoutes.home);
           return;
         }
         if (state.errorMessage != null) {
