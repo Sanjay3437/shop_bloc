@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../shared/config/dimens.dart';
 import '../bloc/cart_bloc.dart';
 
 class CartPage extends StatelessWidget {
@@ -74,7 +75,7 @@ class CartPage extends StatelessWidget {
             if (state.isEmpty) return const SizedBox.shrink();
             return SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Dimens.spaceL),
                 child: Row(
                   children: [
                     Text(

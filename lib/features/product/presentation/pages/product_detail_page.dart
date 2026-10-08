@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shop_bloc/features/cart/presentation/bloc/cart_bloc.dart';
 
 import '../../../../core/constants/routes.dart';
+import '../../../../shared/config/dimens.dart';
 import '../../domain/entities/product.dart';
 
 class ProductDetailPage extends StatelessWidget {
@@ -49,12 +50,12 @@ class ProductDetailPage extends StatelessWidget {
                 tag: 'product-image-${product.id}',
 
                 child: Container(
-                  height: 280,
+                  height: Dimens.productImageHeight,
                   width: double.infinity,
 
                   color: Colors.white,
 
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Dimens.spaceL),
 
                   child: Image.network(
                     product.image,
@@ -68,11 +69,11 @@ class ProductDetailPage extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: Dimens.spaceL),
 
               Chip(label: Text(product.category)),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: Dimens.spaceS),
 
 
               Text(
@@ -82,7 +83,7 @@ class ProductDetailPage extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: Dimens.spaceS),
 
 
               Row(
@@ -99,13 +100,13 @@ class ProductDetailPage extends StatelessWidget {
 
                   const Icon(Icons.star, size: 18, color: Colors.amber),
 
-                  const SizedBox(width: 4),
+                  const SizedBox(width: Dimens.spaceXS),
 
                   Text('${product.rating} (${product.ratingCount})'),
                 ],
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: Dimens.spaceL),
 
 
               Text(
@@ -115,7 +116,7 @@ class ProductDetailPage extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 4),
+              const SizedBox(height: Dimens.spaceXS),
 
               Text(product.description, style: theme.textTheme.bodyMedium),
 
@@ -127,7 +128,7 @@ class ProductDetailPage extends StatelessWidget {
 
         bottomNavigationBar: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Dimens.bottomBarPadding),
 
             child: Row(
               children: [

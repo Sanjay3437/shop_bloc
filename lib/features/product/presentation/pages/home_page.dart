@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/routes.dart';
+import '../../../../shared/config/dimens.dart';
 import '../bloc/product_bloc.dart';
 import '../widgets/product_card.dart';
 
@@ -122,12 +123,10 @@ class _HomePageState extends State<HomePage> {
 
 
               SizedBox(
-                height: 58,
+                height: Dimens.categoryBarHeight,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+                  padding: const EdgeInsets.symmetric(horizontal: Dimens.spaceM, vertical: Dimens.spaceS
                   ),
                   itemCount: categories.length,
                   itemBuilder: (context, index) {
@@ -138,7 +137,7 @@ class _HomePageState extends State<HomePage> {
                         : selectedCategory == category;
 
                     return Padding(
-                      padding: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.only(right: Dimens.spaceS),
                       child: ChoiceChip(
                         label: Text(
                           category == 'All' ? 'All' : _formatCategory(category),
@@ -188,14 +187,14 @@ class _HomePageState extends State<HomePage> {
                     GridView.builder(
                       controller: _scrollController,
 
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(Dimens.spaceM),
 
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.7,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
+                            crossAxisCount: Dimens.productGridColumns,
+                            childAspectRatio: Dimens.productCardAspectRatio,
+                            crossAxisSpacing: Dimens.productGridSpacing,
+                            mainAxisSpacing: Dimens.productGridSpacing,
                           ),
 
                       itemCount: products.length + (isLoadingMore ? 1 : 0),
