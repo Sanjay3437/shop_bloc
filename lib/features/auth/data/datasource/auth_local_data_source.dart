@@ -1,9 +1,11 @@
+
 import 'dart:convert';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shop_bloc/core/exceptions/app_exceptions.dart';
+
 import '../models/auth_user_model.dart';
 
 abstract class AuthLocalDataSource {
@@ -27,30 +29,56 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   static const _usersKey = 'auth_users';
   static const _sessionKey = 'auth_session';
 
-  final SharedPreferences prefs;
+  final FlutterSecureStorage storage;
 
-  const AuthLocalDataSourceImpl(this.prefs);
+  const AuthLocalDataSourceImpl(this.storage);
 
-  Map<String, dynamic> _readUsers() {
-    final raw = prefs.getString(_usersKey);
-    if (raw == null) return {};
-    return Map<String, dynamic>.from(jsonDecode(raw) as Map);
+  // Read all registered users from secure storage.
+  Future<Map<String, dynamic>> _readUsers() async {
+    final raw = await storage.read(key: _usersKey);
+
+    if (raw == null || raw.isEmpty) {
+      return {};
+    }
+
+    return Map<String, dynamic>.from(
+      jsonDecode(raw) as Map,
+    );
   }
 
-  Future<void> _writeUsers(Map<String, dynamic> users) async {
-    await prefs.setString(_usersKey, jsonEncode(users));
+  // Save all registered users to secure storage.
+  Future<void> _writeUsers(
+      Map<String, dynamic> users,
+      ) async {
+    await storage.write(
+      key: _usersKey,
+      value: jsonEncode(users),
+    );
   }
 
+  // Generate a random salt for password hashing.
   String _newSalt() {
     final random = Random.secure();
-    return base64UrlEncode(List<int>.generate(16, (_) => random.nextInt(256)));
+
+    return base64UrlEncode(
+      List<int>.generate(
+        16,
+            (_) => random.nextInt(256),
+      ),
+    );
   }
 
+  // Hash the password together with its salt.
   String _hash(String password, String salt) {
-    return sha256.convert(utf8.encode('$salt$password')).toString();
+    return sha256
+        .convert(utf8.encode('$salt$password'))
+        .toString();
   }
 
-  String _normalize(String email) => email.trim().toLowerCase();
+  // Normalize email so uppercase/lowercase differences don't matter.
+  String _normalize(String email) {
+    return email.trim().toLowerCase();
+  }
 
   @override
   Future<AuthUserModel> signUp({
@@ -59,14 +87,17 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     required String password,
   }) async {
     final key = _normalize(email);
-    final users = _readUsers();
+    final users = await _readUsers();
 
     if (users.containsKey(key)) {
-      throw const AuthException('An account with this email already exists');
+      throw const AuthException(
+        'An account with this email already exists',
+      );
     }
 
     final salt = _newSalt();
     final cleanName = name.trim();
+
     users[key] = {
       'name': cleanName,
       'email': key,
@@ -75,8 +106,17 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     };
 
     await _writeUsers(users);
-    await prefs.setString(_sessionKey, key);
-    return AuthUserModel(name: cleanName, email: key);
+
+    // Save the current login session securely.
+    await storage.write(
+      key: _sessionKey,
+      value: key,
+    );
+
+    return AuthUserModel(
+      name: cleanName,
+      email: key,
+    );
   }
 
   @override
@@ -85,34 +125,50 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     required String password,
   }) async {
     final key = _normalize(email);
-    final record = _readUsers()[key] as Map<String, dynamic>?;
+    final users = await _readUsers();
 
-    // Same message for "no such user" and "wrong password", so the
-    // error doesn't reveal which emails are registered.
+    final record = users[key] as Map<String, dynamic>?;
+
+    // Use the same error for an unknown email and a wrong password.
     if (record == null ||
-        record['hash'] != _hash(password, record['salt'] as String)) {
-      throw const AuthException('Invalid email or password');
+        record['hash'] !=
+            _hash(password, record['salt'] as String)) {
+      throw const AuthException(
+        'Invalid email or password',
+      );
     }
 
-    await prefs.setString(_sessionKey, key);
+    // Save the current login session securely.
+    await storage.write(
+      key: _sessionKey,
+      value: key,
+    );
+
     return AuthUserModel.fromJson(record);
   }
 
   @override
   Future<void> signOut() async {
-    await prefs.remove(_sessionKey);
+    await storage.delete(key: _sessionKey);
   }
 
   @override
   Future<AuthUserModel?> getCurrentUser() async {
-    final key = prefs.getString(_sessionKey);
-    if (key == null) return null;
+    final key = await storage.read(key: _sessionKey);
 
-    final record = _readUsers()[key] as Map<String, dynamic>?;
-    if (record == null) {
-      await prefs.remove(_sessionKey); // stale session
+    if (key == null) {
       return null;
     }
+
+    final users = await _readUsers();
+    final record = users[key] as Map<String, dynamic>?;
+
+    if (record == null) {
+      // Remove a session that no longer has a matching user.
+      await storage.delete(key: _sessionKey);
+      return null;
+    }
+
     return AuthUserModel.fromJson(record);
   }
 }

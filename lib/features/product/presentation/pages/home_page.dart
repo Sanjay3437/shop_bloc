@@ -10,6 +10,9 @@ import '../widgets/product_card.dart';
 import 'package:shop_bloc/features/cart/presentation/widgets/cart_badge_button.dart';
 import 'package:shop_bloc/features/auth/presentation/bloc/auth_bloc.dart';
 
+import 'package:shop_bloc/core/dependency_injection/injector.dart';
+import 'package:shop_bloc/features/product/data/datasource/category_remote_data_source.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -54,6 +57,12 @@ class _HomePageState extends State<HomePage> {
 
 
     _scrollController.addListener(_onScroll);
+
+    sl<CategoryRemoteDataSource>().getCategories().then((cats) {
+      debugPrint('✅ FakeStore categories via NetworkService: $cats');
+    }).catchError((e) {
+      debugPrint('❌ FakeStore categories error: $e');
+    });
   }
 
 
@@ -95,7 +104,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Products'),
+        title: const Text('ShopBloc'),
         actions: [
           const CartBadgeButton(),
 
